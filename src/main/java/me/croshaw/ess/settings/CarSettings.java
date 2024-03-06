@@ -1,8 +1,9 @@
 package me.croshaw.ess.settings;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class CarSettings extends DefaultSettings {
+public class CarSettings extends DefaultSettings implements Serializable {
     private int carCount;
     private double exhaust;
 

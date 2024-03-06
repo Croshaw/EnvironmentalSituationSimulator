@@ -1,9 +1,10 @@
 package me.croshaw.ess.settings;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.Random;
 
-public class FilterSettings extends DefaultSettings {
+public class FilterSettings extends DefaultSettings implements Serializable {
     private double price;
     private Duration installationDuration;
     private float emissionReduction;

@@ -6,19 +6,24 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import me.croshaw.ess.app.MapSettingsApplication;
 import me.croshaw.ess.model.Weather;
-import me.croshaw.ess.settings.SimulationSettings;
+import me.croshaw.ess.settings.*;
+import me.croshaw.ess.util.Filters;
 
+import java.io.*;
 import java.net.URL;
 import java.time.Duration;
 import java.util.ResourceBundle;
-import java.util.function.UnaryOperator;
 
 public class SettingsController implements Initializable {
-    public final MapSettingsApplication mapSettingsApplication = new MapSettingsApplication();
-    public final Stage stage = new Stage();
+    private final FileChooser fileChooser = new FileChooser();
+    private final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DAT files (*.dat)", "*.dat");
+    private final Alert alert = new Alert(Alert.AlertType.WARNING);
+    private final MapSettingsApplication mapSettingsApplication = new MapSettingsApplication();
+    private final Stage stage = new Stage();
     //region CarSettings
     @FXML
     HBox carSettingsBox;
@@ -87,14 +92,6 @@ public class SettingsController implements Initializable {
     @FXML
     Label simulationStepInfo;
     //endregion
-    private final UnaryOperator<TextFormatter.Change> decimalFilter = change -> {
-        String input = change.getText();
-
-        if ((input.matches("[\\d\\.]+")) || change.isDeleted()) {
-            return change;
-        }
-        return null;
-    };
     private void loadSettings() {
         //? Авто
         countCarSlider.valueProperty().setValue(SimulationSettings.CAR.getCarCount());
@@ -135,6 +132,7 @@ public class SettingsController implements Initializable {
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        fileChooser.getExtensionFilters().add(extFilter);
         //? Авто
         randomCarSettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             carSettingsBox.getChildren().forEach(node -> node.disableProperty().setValue(newValue));
@@ -143,13 +141,13 @@ public class SettingsController implements Initializable {
             countCarSlider.setValue(newValue.intValue());
             countCarInfo.setText(Integer.toString(newValue.intValue()));
         });
-        carExhaustField.setTextFormatter(new TextFormatter<>(decimalFilter));
+        carExhaustField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         //? Компания
         randomCompanySettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             companySettingsBox.getChildren().forEach(node -> node.disableProperty().setValue(newValue));
         });
-        taxField.setTextFormatter(new TextFormatter<>(decimalFilter));
-        companyMaxEmissionsField.setTextFormatter(new TextFormatter<>(decimalFilter));
+        taxField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
+        companyMaxEmissionsField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         //? Карта
         randomMapSettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             mapSettingsButton.disableProperty().setValue(newValue);
@@ -174,12 +172,12 @@ public class SettingsController implements Initializable {
             filterEmissionReductionSlider.setValue(val);
             emissionReductionInfo.setText(Float.toString(val));
         });
-        filterPriceField.setTextFormatter(new TextFormatter<>(decimalFilter));
+        filterPriceField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         //? Город
         randomCitySettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             citySettingsBox.getChildren().forEach(node -> node.disableProperty().setValue(newValue));
         });
-        startCityFundField.setTextFormatter(new TextFormatter<>(decimalFilter));
+        startCityFundField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         ObservableList<Weather> weathers = FXCollections.observableArrayList();
         weathers.addAll(SimulationSettings.WEATHERS);
         weatherCB.setItems(weathers);
@@ -199,16 +197,49 @@ public class SettingsController implements Initializable {
     }
     @FXML
     private void onSaveButtonClick() {
-
+        File file = fileChooser.showSaveDialog(stage);
+        if(file == null)
+            return;
+        try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file)))
+        {
+            oos.writeObject(SimulationSettings.CAR);
+            oos.writeObject(SimulationSettings.COMPANY);
+            oos.writeObject(SimulationSettings.MAP);
+            oos.writeObject(SimulationSettings.CITY);
+            oos.writeObject(SimulationSettings.FILTER);
+            oos.writeObject(SimulationSettings.SIMULATION_DURATION);
+            oos.writeObject(SimulationSettings.SIMULATION_STEP);
+        }
+        catch(Exception ex){
+            System.err.println(ex.getMessage());
+        }
     }
     @FXML
     private void onLoadButtonClick() {
-
+        File file = fileChooser.showOpenDialog(stage);
+        if (file == null)
+            return;
+        try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file)))
+        {
+            SimulationSettings.CAR =(CarSettings) ois.readObject();
+            SimulationSettings.COMPANY = (CompanySettings) ois.readObject();
+            SimulationSettings.MAP = (MapSettings) ois.readObject();
+            SimulationSettings.CITY = (CitySettings) ois.readObject();
+            SimulationSettings.CITY.setStartWeather(SimulationSettings.WEATHERS.stream()
+                    .filter(weather -> weather.name().equals(SimulationSettings.CITY.getStartWeather().name()))
+                    .findFirst().orElse(SimulationSettings.WEATHERS.getFirst()));
+            SimulationSettings.FILTER = (FilterSettings) ois.readObject();
+            SimulationSettings.SIMULATION_DURATION = (Duration) ois.readObject();
+            SimulationSettings.SIMULATION_STEP = (int) ois.readObject();
+            loadSettings();
+        }
+        catch(Exception ex) {
+            System.err.println(ex.getMessage());
+        }
     }
     @FXML
     private void onApplyButtonClick() {
         if(!isSettingsFilled()) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Ошибка");
             alert.setHeaderText("Заполните поля!");
             alert.setContentText("");

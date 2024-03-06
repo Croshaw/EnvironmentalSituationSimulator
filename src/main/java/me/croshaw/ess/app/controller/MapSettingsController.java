@@ -6,12 +6,14 @@ import javafx.geometry.HPos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import me.croshaw.ess.exception.WrongCoordinatesException;
 import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.settings.SimulationSettings;
+import me.croshaw.ess.util.Filters;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -24,6 +26,7 @@ public class MapSettingsController implements Initializable {
     @FXML
     GridPane table;
     MapSettings curMapSettings;
+
     private void setupTable() {
         table.getChildren().clear();
         table.getColumnConstraints().clear();
@@ -86,19 +89,15 @@ public class MapSettingsController implements Initializable {
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        curMapSettings = SimulationSettings.MAP;
+        curMapSettings = SimulationSettings.MAP.clone();
+        rowsField.setTextFormatter(new TextFormatter<>(Filters.integerFilter));
         rowsField.setText(Integer.toString(curMapSettings.getRows()));
+        columnsField.setTextFormatter(new TextFormatter<>(Filters.integerFilter));
         columnsField.setText(Integer.toString(curMapSettings.getColumns()));
         loadMap();
     }
     @FXML
     private void save() {
         SimulationSettings.MAP = curMapSettings;
-        for(int i = 0; i < SimulationSettings.MAP.getRows(); i++) {
-            for(int j = 0; j < SimulationSettings.MAP.getColumns(); j++) {
-                System.out.print(SimulationSettings.MAP.getMap()[i][j]+" ");
-            }
-            System.out.println();
-        }
     }
 }

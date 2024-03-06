@@ -2,9 +2,10 @@ package me.croshaw.ess.settings;
 
 import me.croshaw.ess.model.Weather;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class CitySettings extends DefaultSettings {
+public class CitySettings extends DefaultSettings implements Serializable {
     private Weather startWeather;
     private double startCityFund;
     @Override

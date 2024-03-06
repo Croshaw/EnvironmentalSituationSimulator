@@ -1,8 +1,9 @@
 package me.croshaw.ess.settings;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class CompanySettings extends DefaultSettings {
+public class CompanySettings extends DefaultSettings implements Serializable {
     private double tax;
     private double maxEmissions;
 

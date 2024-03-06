@@ -2,9 +2,10 @@ package me.croshaw.ess.settings;
 
 import me.croshaw.ess.exception.WrongCoordinatesException;
 
+import java.io.Serializable;
 import java.util.Random;
 
-public class MapSettings extends DefaultSettings {
+public class MapSettings extends DefaultSettings implements Serializable, Cloneable {
     private int rows;
     private int columns;
     private boolean[][] map;
@@ -80,5 +81,16 @@ public class MapSettings extends DefaultSettings {
     }
     public boolean[][] getMap() {
         return map;
+    }
+
+    @Override
+    public MapSettings clone() {
+        try {
+            MapSettings clone = (MapSettings) super.clone();
+            // TODO: copy mutable state here, so the clone can't change the internals of the original
+            return clone;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }

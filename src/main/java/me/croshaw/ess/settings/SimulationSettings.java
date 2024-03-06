@@ -2,11 +2,12 @@ package me.croshaw.ess.settings;
 
 import me.croshaw.ess.model.Weather;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Random;
 
-public class SimulationSettings {
+public final class SimulationSettings implements Serializable {
     public static Random RANDOM = new Random();
     public static ArrayList<Weather> WEATHERS = new ArrayList<>() {{
         add(new Weather("Нормальная", 1f));
