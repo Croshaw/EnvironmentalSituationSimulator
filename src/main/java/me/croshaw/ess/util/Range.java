@@ -21,7 +21,7 @@ public class Range<T extends Number> {
         return max;
     }
     public T getRandom(Random random) {
-        double result = random.nextDouble(min.doubleValue(), max.doubleValue()+1);
+        double result = min.doubleValue() + random.nextFloat() * (max.doubleValue() - min.doubleValue() + Float.MIN_VALUE);
         return switch (min) {
             case Double v -> (T) Double.valueOf(result);
             case Integer i -> (T) Integer.valueOf((int) result);

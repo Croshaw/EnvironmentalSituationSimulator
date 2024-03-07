@@ -201,13 +201,6 @@
                         <Label fx:id="simulationDurationInfo" text="30" />
                      </children>
                   </VBox>
-                  <VBox alignment="CENTER" prefHeight="100.0" prefWidth="181.0">
-                     <children>
-                        <Label text="Шаг симуляции(в днях)" />
-                        <Slider fx:id="simulationStepSlider" max="7.0" min="1.0" value="1.0" />
-                        <Label fx:id="simulationStepInfo" text="1" />
-                     </children>
-                  </VBox>
                </children>
             </HBox>
          </children>

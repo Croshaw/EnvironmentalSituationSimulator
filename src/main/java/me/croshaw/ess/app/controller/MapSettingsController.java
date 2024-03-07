@@ -14,6 +14,7 @@ import me.croshaw.ess.exception.WrongCoordinatesException;
 import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.settings.SimulationSettings;
 import me.croshaw.ess.util.Filters;
+import me.croshaw.ess.util.RandomUtils;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -79,7 +80,7 @@ public class MapSettingsController implements Initializable {
     }
     @FXML
     private void fillRandomly() {
-        mapSettings.fillRandomly(SimulationSettings.RANDOM);
+        mapSettings.fillRandomly(RandomUtils.RANDOM);
         rowsField.textProperty().setValue(String.valueOf(mapSettings.getRows()));
         columnsField.textProperty().setValue(String.valueOf(mapSettings.getColumns()));
         setupTable();

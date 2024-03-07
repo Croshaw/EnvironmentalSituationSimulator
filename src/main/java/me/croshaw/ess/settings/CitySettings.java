@@ -13,6 +13,7 @@ public class CitySettings extends DefaultSettings implements Serializable {
     private Weather startWeather;
     private double startCityFund;
     private double permissibleConcentration;
+    private double passiveReductionPollution = 5;
     @Override
     public void fillRandomly(Random random) {
         setStartCityFund(NumberHelper.round(START_FUND_RANGE.getRandom(random), 2));
@@ -47,5 +48,13 @@ public class CitySettings extends DefaultSettings implements Serializable {
 
     public void setPermissibleConcentration(double permissibleConcentration) {
         this.permissibleConcentration = permissibleConcentration;
+    }
+
+    public double getPassiveReductionPollution() {
+        return passiveReductionPollution;
+    }
+
+    public void setPassiveReductionPollution(double passiveReductionPollution) {
+        this.passiveReductionPollution = passiveReductionPollution;
     }
 }

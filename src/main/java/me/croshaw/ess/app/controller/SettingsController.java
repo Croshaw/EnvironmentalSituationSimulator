@@ -15,6 +15,7 @@ import me.croshaw.ess.model.Weather;
 import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.Alerts;
 import me.croshaw.ess.util.Filters;
+import me.croshaw.ess.util.RandomUtils;
 
 import java.io.*;
 import java.net.URL;
@@ -88,10 +89,6 @@ public class SettingsController implements Initializable {
     Slider simulationDurationSlider;
     @FXML
     Label simulationDurationInfo;
-    @FXML
-    Slider simulationStepSlider;
-    @FXML
-    Label simulationStepInfo;
     //endregion
     private void loadSettings() {
         //? Авто
@@ -107,7 +104,6 @@ public class SettingsController implements Initializable {
         cityPermissibleConcentrationField.setText(Double.toString(SimulationSettings.CITY.getPermissibleConcentration()));
         //? Симуляция
         simulationDurationSlider.valueProperty().setValue(SimulationSettings.SIMULATION_DURATION.toDays());
-        simulationStepSlider.valueProperty().setValue(SimulationSettings.SIMULATION_STEP);
     }
     private boolean isCarSettingsFilled() {
         return randomCarSettings.selectedProperty().getValue() || !carExhaustField.getText().isEmpty();
@@ -190,10 +186,6 @@ public class SettingsController implements Initializable {
             simulationDurationSlider.setValue(newValue.intValue());
             simulationDurationInfo.setText(Integer.toString(newValue.intValue()));
         });
-        simulationStepSlider.valueProperty().addListener((obs, oldValue, newValue) -> {
-            simulationStepSlider.setValue(newValue.intValue());
-            simulationStepInfo.setText(Integer.toString(newValue.intValue()));
-        });
         loadSettings();
     }
     @FXML
@@ -209,7 +201,6 @@ public class SettingsController implements Initializable {
             oos.writeObject(SimulationSettings.CITY);
             oos.writeObject(SimulationSettings.FILTER);
             oos.writeObject(SimulationSettings.SIMULATION_DURATION);
-            oos.writeObject(SimulationSettings.SIMULATION_STEP);
         }
         catch(Exception ex){
             System.err.println(ex.getMessage());
@@ -231,7 +222,6 @@ public class SettingsController implements Initializable {
                     .findFirst().orElse(SimulationSettings.WEATHERS.getFirst()));
             SimulationSettings.FILTER = (FilterSettings) ois.readObject();
             SimulationSettings.SIMULATION_DURATION = (Duration) ois.readObject();
-            SimulationSettings.SIMULATION_STEP = (int) ois.readObject();
             loadSettings();
         }
         catch(Exception ex) {
@@ -250,22 +240,22 @@ public class SettingsController implements Initializable {
 
         //? Авто
         if(randomCarSettings.selectedProperty().getValue()) {
-            SimulationSettings.CAR.fillRandomly(SimulationSettings.RANDOM);
+            SimulationSettings.CAR.fillRandomly(RandomUtils.RANDOM);
         } else {
             SimulationSettings.CAR.setCarCount(countCarSlider.valueProperty().intValue());
             SimulationSettings.CAR.setExhaust(Double.parseDouble(carExhaustField.getText()));
         }
         //? Компания
         if(randomCompanySettings.selectedProperty().getValue()) {
-            SimulationSettings.COMPANY.fillRandomly(SimulationSettings.RANDOM);
+            SimulationSettings.COMPANY.fillRandomly(RandomUtils.RANDOM);
         }
         //? Карта
         if(randomMapSettings.selectedProperty().getValue()) {
-            SimulationSettings.MAP.fillRandomly(SimulationSettings.RANDOM);
+            SimulationSettings.MAP.fillRandomly(RandomUtils.RANDOM);
         }
         //? Фильтры
         if(randomFilterSettings.selectedProperty().getValue()) {
-            SimulationSettings.FILTER.fillRandomly(SimulationSettings.RANDOM);
+            SimulationSettings.FILTER.fillRandomly(RandomUtils.RANDOM);
         } else {
             SimulationSettings.FILTER.setPrice(Double.parseDouble(filterPriceField.getText()));
             SimulationSettings.FILTER.setInstallationDuration(Duration.ofDays(filterDurationInstallationSlider.valueProperty().intValue()));
@@ -273,7 +263,7 @@ public class SettingsController implements Initializable {
         }
         //? Город
         if(randomCitySettings.selectedProperty().getValue()) {
-            SimulationSettings.CITY.fillRandomly(SimulationSettings.RANDOM);
+            SimulationSettings.CITY.fillRandomly(RandomUtils.RANDOM);
         } else {
             SimulationSettings.CITY.setStartCityFund(Double.parseDouble(startCityFundField.getText()));
             SimulationSettings.CITY.setStartWeather(weatherCB.getValue());
@@ -281,12 +271,16 @@ public class SettingsController implements Initializable {
         }
         //? Симуляция
         if(randomSimulationSettings.selectedProperty().getValue()) {
-            SimulationSettings.SIMULATION_DURATION = Duration.ofDays(SimulationSettings.RANDOM.nextInt(15, 365));
-            SimulationSettings.SIMULATION_STEP = SimulationSettings.RANDOM.nextInt(1, 5);
+            SimulationSettings.SIMULATION_DURATION = Duration.ofDays(RandomUtils.RANDOM.nextInt(15, 365));
         } else {
             SimulationSettings.SIMULATION_DURATION = Duration.ofDays(simulationDurationSlider.valueProperty().intValue());
-            SimulationSettings.SIMULATION_STEP = simulationStepSlider.valueProperty().intValue();
         }
+        randomCompanySettings.selectedProperty().setValue(false);
+        randomSimulationSettings.selectedProperty().setValue(false);
+        randomCitySettings.selectedProperty().setValue(false);
+        randomMapSettings.selectedProperty().setValue(false);
+        randomCarSettings.selectedProperty().setValue(false);
+        randomFilterSettings.selectedProperty().setValue(false);
         loadSettings();
     }
 }

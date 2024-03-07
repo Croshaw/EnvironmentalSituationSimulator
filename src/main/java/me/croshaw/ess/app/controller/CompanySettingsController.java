@@ -8,6 +8,7 @@ import me.croshaw.ess.settings.CompanySettings;
 import me.croshaw.ess.settings.SimulationSettings;
 import me.croshaw.ess.util.Alerts;
 import me.croshaw.ess.util.Filters;
+import me.croshaw.ess.util.RandomUtils;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -69,7 +70,7 @@ public class CompanySettingsController implements Initializable {
     }
     @FXML
     void onRandomFillButtonClick() {
-        companySettings.fillRandomly(SimulationSettings.RANDOM);
+        companySettings.fillRandomly(RandomUtils.RANDOM);
         emissionBox.getChildren().clear();
         load();
     }

@@ -93,6 +93,11 @@ public class MapSettings extends DefaultSettings implements Serializable, Clonea
     public int getCompanyCount() {
         return companyPriorities.size();
     }
+
+    public HashMap<Integer, Pair<Integer, Integer>> getCompanyPriorities() {
+        return companyPriorities;
+    }
+
     public int[][] getMap() {
         return map;
     }
@@ -104,5 +109,6 @@ public class MapSettings extends DefaultSettings implements Serializable, Clonea
         } catch (CloneNotSupportedException ex) {
             System.err.println(ex.getMessage());
         }
+        return null;
     }
 }
