@@ -1,22 +1,27 @@
 package me.croshaw.ess.settings;
 
+import me.croshaw.ess.util.NumberHelper;
+import me.croshaw.ess.util.Range;
+
 import java.io.Serializable;
 import java.util.Random;
 
 public class CarSettings extends DefaultSettings implements Serializable {
+    public static final Range<Integer> CAR_COUNT_RANGE = new Range<>(30, 90);
+    public static final Range<Double> AVG_EXHAUST_RANGE = new Range<>(0.5d, 5d);
     private int carCount;
     private double exhaust;
 
     @Override
     public void fillRandomly(Random random) {
-        setCarCount(random.nextInt(30, 91));
-        setExhaust((double) (int) (random.nextDouble(0.5, 5) * 100) / 100);
+        setCarCount(CAR_COUNT_RANGE.getRandom(random));
+        setExhaust(NumberHelper.round(AVG_EXHAUST_RANGE.getRandom(random), 2));
     }
 
     @Override
     public void fillDefault() {
-        setCarCount(30);
-        setExhaust(1);
+        setCarCount(CAR_COUNT_RANGE.getMin());
+        setExhaust(AVG_EXHAUST_RANGE.getMin());
     }
 
     public int getCarCount() {

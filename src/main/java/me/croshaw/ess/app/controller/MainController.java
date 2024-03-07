@@ -10,7 +10,7 @@ import java.util.ResourceBundle;
 
 public class MainController implements Initializable {
     private final SettingsApplication settingsApplication = new SettingsApplication();
-    private final Stage stage = new Stage();
+    public static final Stage STAGE = new Stage();
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
@@ -22,9 +22,9 @@ public class MainController implements Initializable {
     @FXML
     private void onSettingsButtonClick() {
         try {
-            settingsApplication.start(stage);
+            settingsApplication.start(STAGE);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.err.println(e.getMessage());
         }
     }
 }

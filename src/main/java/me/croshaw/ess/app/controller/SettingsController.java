@@ -8,9 +8,12 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
+import me.croshaw.ess.app.CompanySettingsApplication;
 import me.croshaw.ess.app.MapSettingsApplication;
 import me.croshaw.ess.model.Weather;
 import me.croshaw.ess.settings.*;
+import me.croshaw.ess.util.Alerts;
 import me.croshaw.ess.util.Filters;
 
 import java.io.*;
@@ -20,10 +23,10 @@ import java.util.ResourceBundle;
 
 public class SettingsController implements Initializable {
     private final FileChooser fileChooser = new FileChooser();
+    public final static Stage STAGE = new Stage();
     private final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DAT files (*.dat)", "*.dat");
-    private final Alert alert = new Alert(Alert.AlertType.WARNING);
     private final MapSettingsApplication mapSettingsApplication = new MapSettingsApplication();
-    private final Stage stage = new Stage();
+    private final CompanySettingsApplication companySettingsApplication = new CompanySettingsApplication();
     //region CarSettings
     @FXML
     HBox carSettingsBox;
@@ -38,13 +41,9 @@ public class SettingsController implements Initializable {
     //endregion
     //region CompanySettings
     @FXML
-    HBox companySettingsBox;
-    @FXML
     CheckBox randomCompanySettings;
     @FXML
-    TextField taxField;
-    @FXML
-    TextField companyMaxEmissionsField;
+    Button companySettingsButton;
     //endregion
     //region MapSettings
     @FXML
@@ -77,6 +76,8 @@ public class SettingsController implements Initializable {
     ComboBox<Weather> weatherCB;
     @FXML
     TextField startCityFundField;
+    @FXML
+    TextField cityPermissibleConcentrationField;
     //endregion
     //region SimulationSettings
     @FXML
@@ -96,9 +97,6 @@ public class SettingsController implements Initializable {
         //? Авто
         countCarSlider.valueProperty().setValue(SimulationSettings.CAR.getCarCount());
         carExhaustField.setText(Double.toString(SimulationSettings.CAR.getExhaust()));
-        //? Компания
-        taxField.setText(Double.toString(SimulationSettings.COMPANY.getTax()));
-        companyMaxEmissionsField.setText(Double.toString(SimulationSettings.COMPANY.getMaxEmissions()));
         //? Фильтры
         filterPriceField.setText(Double.toString(SimulationSettings.FILTER.getPrice()));
         filterDurationInstallationSlider.valueProperty().setValue(SimulationSettings.FILTER.getInstallationDuration().toDays());
@@ -106,6 +104,7 @@ public class SettingsController implements Initializable {
         //? Город
         startCityFundField.setText(Double.toString(SimulationSettings.CITY.getStartCityFund()));
         weatherCB.setValue(SimulationSettings.CITY.getStartWeather());
+        cityPermissibleConcentrationField.setText(Double.toString(SimulationSettings.CITY.getPermissibleConcentration()));
         //? Симуляция
         simulationDurationSlider.valueProperty().setValue(SimulationSettings.SIMULATION_DURATION.toDays());
         simulationStepSlider.valueProperty().setValue(SimulationSettings.SIMULATION_STEP);
@@ -113,21 +112,17 @@ public class SettingsController implements Initializable {
     private boolean isCarSettingsFilled() {
         return randomCarSettings.selectedProperty().getValue() || !carExhaustField.getText().isEmpty();
     }
-    private boolean isCompanySettingsFilled() {
-        return randomCompanySettings.selectedProperty().getValue() || (!taxField.getText().isEmpty() && !companyMaxEmissionsField.getText().isEmpty());
-    }
     private boolean isMapSettingsFilled() {
-        //! ВНИМАНИЕ
-        return randomMapSettings.selectedProperty().getValue() || SimulationSettings.MAP.getCompanyCount() >= 5;
+        return randomMapSettings.selectedProperty().getValue() || SimulationSettings.MAP.getFreePriorities().isEmpty();
     }
     private boolean isFilterSettingsFilled() {
         return randomFilterSettings.selectedProperty().getValue() || !filterPriceField.getText().isEmpty();
     }
     private boolean isCitySettingsFilled() {
-        return randomCitySettings.selectedProperty().getValue() || (weatherCB.getValue() != null && !startCityFundField.getText().isEmpty());
+        return randomCitySettings.selectedProperty().getValue() || (weatherCB.getValue() != null && !startCityFundField.getText().isEmpty() && !cityPermissibleConcentrationField.getText().isEmpty());
     }
     private boolean isSettingsFilled() {
-        return isCarSettingsFilled() && isCompanySettingsFilled() && isMapSettingsFilled()
+        return isCarSettingsFilled() && isMapSettingsFilled()
                 && isFilterSettingsFilled() && isCitySettingsFilled();
     }
     @Override
@@ -144,19 +139,24 @@ public class SettingsController implements Initializable {
         carExhaustField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         //? Компания
         randomCompanySettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
-            companySettingsBox.getChildren().forEach(node -> node.disableProperty().setValue(newValue));
+            companySettingsButton.disableProperty().setValue(newValue);
         });
-        taxField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
-        companyMaxEmissionsField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
+        companySettingsButton.setOnAction(actionEvent -> {
+            try {
+                companySettingsApplication.start(STAGE);
+            } catch (Exception e) {
+                System.err.println(e.getMessage());
+            }
+        });
         //? Карта
         randomMapSettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             mapSettingsButton.disableProperty().setValue(newValue);
         });
         mapSettingsButton.setOnAction(actionEvent -> {
             try {
-                mapSettingsApplication.start(stage);
+                mapSettingsApplication.start(STAGE);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                System.err.println(e.getMessage());
             }
         });
         //? Фильтры
@@ -181,6 +181,7 @@ public class SettingsController implements Initializable {
         ObservableList<Weather> weathers = FXCollections.observableArrayList();
         weathers.addAll(SimulationSettings.WEATHERS);
         weatherCB.setItems(weathers);
+        cityPermissibleConcentrationField.setTextFormatter(new TextFormatter<>(Filters.doubleFilter));
         //? Симуляция
         randomSimulationSettings.selectedProperty().addListener((obs, oldValue, newValue) -> {
             simulationSettingsBox.getChildren().forEach(node -> node.disableProperty().setValue(newValue));
@@ -197,7 +198,7 @@ public class SettingsController implements Initializable {
     }
     @FXML
     private void onSaveButtonClick() {
-        File file = fileChooser.showSaveDialog(stage);
+        File file = fileChooser.showSaveDialog(MainController.STAGE);
         if(file == null)
             return;
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file)))
@@ -216,7 +217,7 @@ public class SettingsController implements Initializable {
     }
     @FXML
     private void onLoadButtonClick() {
-        File file = fileChooser.showOpenDialog(stage);
+        File file = fileChooser.showOpenDialog(MainController.STAGE);
         if (file == null)
             return;
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file)))
@@ -240,10 +241,10 @@ public class SettingsController implements Initializable {
     @FXML
     private void onApplyButtonClick() {
         if(!isSettingsFilled()) {
-            alert.setTitle("Ошибка");
-            alert.setHeaderText("Заполните поля!");
-            alert.setContentText("");
-            alert.show();
+            Alerts.WARNING.setTitle("Ошибка");
+            Alerts.WARNING.setHeaderText("Заполните поля!");
+            Alerts.WARNING.setContentText("");
+            Alerts.WARNING.show();
             return;
         }
 
@@ -257,9 +258,6 @@ public class SettingsController implements Initializable {
         //? Компания
         if(randomCompanySettings.selectedProperty().getValue()) {
             SimulationSettings.COMPANY.fillRandomly(SimulationSettings.RANDOM);
-        } else {
-            SimulationSettings.COMPANY.setTax(Double.parseDouble(taxField.getText()));
-            SimulationSettings.COMPANY.setMaxEmissions(Double.parseDouble(companyMaxEmissionsField.getText()));
         }
         //? Карта
         if(randomMapSettings.selectedProperty().getValue()) {
@@ -279,6 +277,7 @@ public class SettingsController implements Initializable {
         } else {
             SimulationSettings.CITY.setStartCityFund(Double.parseDouble(startCityFundField.getText()));
             SimulationSettings.CITY.setStartWeather(weatherCB.getValue());
+            SimulationSettings.CITY.setPermissibleConcentration(Double.parseDouble(cityPermissibleConcentrationField.getText()));
         }
         //? Симуляция
         if(randomSimulationSettings.selectedProperty().getValue()) {

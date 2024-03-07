@@ -10,10 +10,10 @@ import java.util.Random;
 public final class SimulationSettings implements Serializable {
     public static Random RANDOM = new Random();
     public static ArrayList<Weather> WEATHERS = new ArrayList<>() {{
-        add(new Weather("Нормальная", 1f));
-        add(new Weather("Ветреная", 1.2f));
-        add(new Weather("Дождливая", 1.1f));
-        add(new Weather("Дождь+Ветер", 1.4f));
+        add(new Weather("Нормальная", 0.9f));
+        add(new Weather("Ветреная", 0.75f));
+        add(new Weather("Дождливая", 0.8f));
+        add(new Weather("Дождь+Ветер", 0.6f));
     }};
     public static CarSettings CAR = new CarSettings();
     public static CompanySettings COMPANY = new CompanySettings();

@@ -25,37 +25,34 @@ public class MapSettingsController implements Initializable {
     TextField rowsField;
     @FXML
     GridPane table;
-    MapSettings curMapSettings;
+    MapSettings mapSettings;
 
     private void setupTable() {
         table.getChildren().clear();
         table.getColumnConstraints().clear();
         table.getRowConstraints().clear();
-        for(int i = 0; i < curMapSettings.getRows();i++) {
+        for(int i = 0; i < mapSettings.getRows(); i++) {
             table.addRow(i);
         }
-        for(int i = 0; i < curMapSettings.getColumns();i++) {
-            Node[] nodes = new Node[curMapSettings.getRows()];
-            for(int j = 0; j < curMapSettings.getRows(); j++) {
-                var button = new Button(curMapSettings.getMap()[j][i] ? "X" : "");
+        for(int i = 0; i < mapSettings.getColumns(); i++) {
+            Node[] nodes = new Node[mapSettings.getRows()];
+            for(int j = 0; j < mapSettings.getRows(); j++) {
+                var button = new Button(mapSettings.getMap()[j][i] == 0 ? "" : Integer.toString(mapSettings.getMap()[j][i]));
                 int finalJ = j;
                 int finalI = i;
                 button.setOnAction(actionEvent -> {
                     try {
-                        System.out.print("Click");
-                        if (button.getText().equals("X") && curMapSettings.getCompanyCount() > 5) {
-                            curMapSettings.removeCompany(finalJ, finalI);
+                        if(button.getText().isEmpty() && mapSettings.getCompanyCount() < 12) {
+                            int priority = mapSettings.getFreePriorities().getFirst();
+                            mapSettings.addCompany(finalJ, finalI, priority);
+                            button.setText(Integer.toString(priority));
+                        } else if( mapSettings.getCompanyCount() > 5) {
+                            mapSettings.removeCompany(finalJ, finalI);
                             button.setText("");
-                            System.out.println(":remove");
-                        }
-                        else if(button.getText().isEmpty() && curMapSettings.getCompanyCount() < 12) {
-                            curMapSettings.addCompany(finalJ, finalI);
-                            button.setText("X");
-                            System.out.println(":add");
                         }
                     }
                     catch (WrongCoordinatesException e) {
-                        System.out.println("excep");
+                        System.err.println(e.getMessage());
                     }
                 });
                 nodes[j] = button;
@@ -77,27 +74,27 @@ public class MapSettingsController implements Initializable {
     private void loadMap() {
         int rows = Integer.parseInt(rowsField.getText());
         int cols = Integer.parseInt(columnsField.getText());
-        curMapSettings.resize(rows, cols);
+        mapSettings.resize(rows, cols);
         setupTable();
     }
     @FXML
     private void fillRandomly() {
-        curMapSettings.fillRandomly(SimulationSettings.RANDOM);
-        rowsField.textProperty().setValue(String.valueOf(curMapSettings.getRows()));
-        columnsField.textProperty().setValue(String.valueOf(curMapSettings.getColumns()));
+        mapSettings.fillRandomly(SimulationSettings.RANDOM);
+        rowsField.textProperty().setValue(String.valueOf(mapSettings.getRows()));
+        columnsField.textProperty().setValue(String.valueOf(mapSettings.getColumns()));
         setupTable();
     }
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        curMapSettings = SimulationSettings.MAP.clone();
+        mapSettings = SimulationSettings.MAP.clone();
         rowsField.setTextFormatter(new TextFormatter<>(Filters.integerFilter));
-        rowsField.setText(Integer.toString(curMapSettings.getRows()));
+        rowsField.setText(Integer.toString(mapSettings.getRows()));
         columnsField.setTextFormatter(new TextFormatter<>(Filters.integerFilter));
-        columnsField.setText(Integer.toString(curMapSettings.getColumns()));
+        columnsField.setText(Integer.toString(mapSettings.getColumns()));
         loadMap();
     }
     @FXML
     private void save() {
-        SimulationSettings.MAP = curMapSettings;
+        SimulationSettings.MAP = mapSettings;
     }
 }
