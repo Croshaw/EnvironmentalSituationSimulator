@@ -1,5 +1,9 @@
 package me.croshaw.ess.controller;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.scene.canvas.Canvas;
 import me.croshaw.ess.model.CarSpecialDrivingMode;
 import me.croshaw.ess.model.City;
 import me.croshaw.ess.model.Company;
@@ -7,87 +11,146 @@ import me.croshaw.ess.model.SimulationSummary;
 import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.RandomUtils;
+import me.croshaw.ess.view.CityView;
+import me.croshaw.ess.view.SimulationView;
 
 import java.time.Duration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.function.UnaryOperator;
 
 public class SimulationController {
-//    public final CarSettings carSettings;
-//    public final CompanySettings companySettings;
-//    public final MapSettings mapSettings;
-//    public final CitySettings citySettings;
     public final FilterSettings filterSettings;
     public final Duration simulationDuration;
     private int currentDay;
     private final HashMap<Integer, SimulationSummary> journal;
     private final City city;
-    private final CompanyController companyController;
-    private final CarController carController;
-    private CarSpecialDrivingMode specialDrivingMode;
+    private final CompanyManager companyManager;
+    private final CarManager carManager;
+    private transient SimulationView simulationView;
+    private transient Timeline simulationTimeline;
+    private transient Timeline drawTimeLine;
+    private float speed;
+    private transient HashSet<Company> badCompany;
     public SimulationController(CarSettings carSettings
             , CompanySettings companySettings
             , MapSettings mapSettings
             , CitySettings citySettings
             , FilterSettings filterSettings
-            , Duration simulationDuration) {
-//        this.carSettings = carSettings;
-//        this.companySettings = companySettings;
-//        this.mapSettings = mapSettings;
-//        this.citySettings = citySettings;
+            , Duration simulationDuration, Canvas canvas) {
         this.filterSettings = filterSettings;
         this.simulationDuration = simulationDuration;
         currentDay = 0;
         journal = new HashMap<>();
         city = new City(citySettings.getStartWeather(), citySettings, mapSettings);
-
-        companyController = new CompanyController(companySettings, mapSettings, filterSettings);
-        carController = new CarController(carSettings, mapSettings, RandomUtils.RANDOM);
-        specialDrivingMode = CarSpecialDrivingMode.NONE;
+        companyManager = new CompanyManager(companySettings, mapSettings);
+        carManager = new CarManager(carSettings, mapSettings, RandomUtils.RANDOM);
+        simulationView = new SimulationView(city, citySettings, canvas);
+        speed = 0.1f;
+        badCompany = new HashSet<>();
+    }
+    public City getCity() {
+        return city;
+    }
+    public void setupTimeline(Runnable runnable) {
+        simulationTimeline = new Timeline(
+                new KeyFrame(javafx.util.Duration.millis(20)),
+                new KeyFrame(javafx.util.Duration.ZERO, actionEvent -> journal.put(currentDay, new SimulationSummary(city, companyManager, carManager))),
+                new KeyFrame(javafx.util.Duration.ZERO, actionEvent -> {
+                    if(currentDay <= simulationDuration.toDays()) {
+                        runnable.run();
+                        simulate();
+                        currentDay++;
+                    } else {
+                        simulationTimeline.stop();
+                    }
+                })
+        );
+        simulationTimeline.setCycleCount(Animation.INDEFINITE);
+        simulationTimeline.rateProperty().setValue(speed);
     }
     public void tryToSetupFilter(Company company) {
         if(city.getCityFund() > filterSettings.getPrice()) {
             city.removeFromFund(filterSettings.getPrice());
-            company.addFilter();
+            company.addFilter(filterSettings.getEmissionReduction());
         }
     }
-    public void start() throws CloneNotSupportedException {
-        while(currentDay <= simulationDuration.toDays()) {
-            journal.put(currentDay, new SimulationSummary(city, companyController, carController, specialDrivingMode));
-            simulate();
-            currentDay++;
-        }
+    public void stop() {
+        if(simulationTimeline != null)
+            simulationTimeline.stop();
+        if(drawTimeLine != null)
+            drawTimeLine.stop();
+    }
+    public void pause() {
+        if(simulationTimeline != null)
+            simulationTimeline.pause();
+    }
+    public void resume() {
+        if(simulationTimeline != null)
+            simulationTimeline.play();
+    }
+    public void start(Runnable runnable) {
+        setupTimeline(runnable);
+        simulationTimeline.play();
+        drawTimeLine = new Timeline(
+                new KeyFrame(javafx.util.Duration.ONE, actionEvent -> simulationView.draw())
+        );
+        drawTimeLine.setCycleCount(Animation.INDEFINITE);
+        drawTimeLine.play();
     }
     private void simulate() {
-        companyController.reduceSanctions();
+        companyManager.reduceSanctions();
+        if(RandomUtils.RANDOM.nextFloat() <= city.getCurrentWeather().chanceOfChange()) {
+            city.setCurrentWeather(SimulationSettings.WEATHERS.get(RandomUtils.RANDOM.nextInt(0, SimulationSettings.WEATHERS.size())));
+        }
 
         //? Шаг 1
-        city.updatePollutionMap(NumberHelper.merge(companyController.getPollutionMapWithFluctuation(RandomUtils.RANDOM), (specialDrivingMode != CarSpecialDrivingMode.NONE && specialDrivingMode.isValid()) ? carController.getPollutionMapWithCondition(specialDrivingMode.getPredicate()) : carController.getPollutionMap()));
+        companyManager.updatePollutionMap(RandomUtils.RANDOM);
+        carManager.updateMap();
+        city.updatePollutionMap(NumberHelper.merge(companyManager.getPollutionMap(), carManager.getPollutionMap()));
         city.reducePollution();
-        var pointsWithIncreasingValues = city.getPointsWithIncreasingValues(); //! Доделать
+        var pointsWithIncreasingValues = city.getPointsWithIncreasingValues(); //! Доделать??
 
         //? Шаг 2
-        city.addToFund(companyController.getTaxes());
+        city.addToFund(companyManager.getTaxes());
 
         //? Шаг 3 штрафные санкции
-        var dd = companyController.getFinesAndBadCompanies(city.getPollutionMap());
-        city.addToFund(dd.getFirst());
-        dd.getSecond().forEach(company -> company.suspendWork(Duration.ofDays(3)));
+        var fines = companyManager.getFinesAndBadCompanies(city.getPollutionMap());
+        city.addToFund(fines.getFirst());
+        badCompany = fines.getSecond();
+        badCompany.forEach(company -> company.suspendWork(Duration.ofDays(3)));
 
         //? Шаг 4
-        if(specialDrivingMode.isValid()) {
-            specialDrivingMode.setDuration(specialDrivingMode.getDuration().minusDays(1));
+        if(carManager.getSpecialDrivingMode().isValid()) {
+            carManager.getSpecialDrivingMode().setDuration(carManager.getSpecialDrivingMode().getDuration().minusDays(1));
         } else if(!pointsWithIncreasingValues.isEmpty()) {
             setSpecialDrivingMode(SimulationSettings.CAR_SPECIAL_DRIVING_MODE.get(RandomUtils.RANDOM.nextInt(0, SimulationSettings.CAR_SPECIAL_DRIVING_MODE.size()))
             , RandomUtils.RANDOM.nextInt(1, 5));
         }
         //? Шаг 5
-        dd.getSecond().forEach(this::tryToSetupFilter);
+        fines.getSecond().forEach(this::tryToSetupFilter);
     }
     public void setSpecialDrivingMode(CarSpecialDrivingMode mode, long dayCount) {
-        specialDrivingMode = mode;
-        specialDrivingMode.setDuration(Duration.ofDays(dayCount));
+        carManager.setSpecialDrivingMode(mode, Duration.ofDays(dayCount));
     }
     public HashMap<Integer, SimulationSummary> getJournal() {
         return journal;
+    }
+    public CompanyManager getCompanyManager() {
+        return companyManager;
+    }
+    public HashSet<Company> getBadCompany() {
+        return badCompany;
+    }
+    public int getCurrentDay() {
+        return currentDay;
+    }
+
+    public CarManager getCarManager() {
+        return carManager;
+    }
+    public void setSpeed(float speed) {
+        simulationTimeline.rateProperty().setValue(speed);
+        this.speed = speed;
     }
 }

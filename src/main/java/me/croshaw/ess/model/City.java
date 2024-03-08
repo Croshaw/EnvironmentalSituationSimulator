@@ -7,16 +7,16 @@ import me.croshaw.ess.util.Pair;
 
 import java.util.ArrayList;
 
-public class City implements Cloneable {
+public class City implements Cloneable, IPollutionMap {
     private Weather currentWeather;
     private double cityFund;
-    private double[][] pollutionMap;
-    private double[][] passiveReductionPollutionMap;
+    private double[][] currentPollutionMap;
+    private final double[][] passiveReductionPollutionMap;
     private final double permissibleConcentration;
     public City(Weather currentWeather, CitySettings citySettings, MapSettings mapSettings) {
         this.currentWeather = currentWeather;
         this.cityFund = citySettings.getStartCityFund();
-        pollutionMap = new double[mapSettings.getRows()][mapSettings.getColumns()];
+        currentPollutionMap = new double[mapSettings.getRows()][mapSettings.getColumns()];
         passiveReductionPollutionMap = new double[mapSettings.getRows()][mapSettings.getColumns()];
         for (int i = 0; i < mapSettings.getRows(); i++) {
             for (int j = 0; j < mapSettings.getColumns(); j++) {
@@ -25,12 +25,11 @@ public class City implements Cloneable {
         }
         permissibleConcentration = citySettings.getPermissibleConcentration();
     }
+    public double getPermissibleConcentration() {
+        return permissibleConcentration;
+    }
     public void updatePollutionMap(double[][] pollutionMap) {
-        for(int i = 0; i < pollutionMap.length; i++) {
-            for(int j = 0; j < pollutionMap[i].length; j++) {
-                this.pollutionMap[i][j] += pollutionMap[i][j];
-            }
-        }
+        currentPollutionMap = NumberHelper.merge(currentPollutionMap, pollutionMap);
     }
     private double[][] getPassiveReductionPollutionMap() {
         double[][] result = new double[passiveReductionPollutionMap.length][passiveReductionPollutionMap[0].length];
@@ -42,19 +41,29 @@ public class City implements Cloneable {
         return result;
     }
     public void reducePollution() {
-        pollutionMap = NumberHelper.matrixReplaceMax(NumberHelper.matrixMinus(NumberHelper.matrixMinus(pollutionMap), getPassiveReductionPollutionMap()), 0);
+        currentPollutionMap = NumberHelper.matrixReplaceMax(NumberHelper.matrixMinus(NumberHelper.matrixMinus(currentPollutionMap), getPassiveReductionPollutionMap()), 0);
     }
     public void setCurrentWeather(Weather weather) {
         currentWeather = weather;
     }
+    @Override
     public double[][] getPollutionMap() {
-        return pollutionMap;
+        return currentPollutionMap;
+    }
+
+    @Override
+    public String getInfo() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Текущая погода: %s\n".formatted(currentWeather.name()));
+        sb.append("Казна: %s\n".formatted(cityFund));
+        sb.append("Максимально допустимая концентрация: %s".formatted(permissibleConcentration));
+        return sb.toString();
     }
     public ArrayList<Pair<Integer, Integer>> getPointsWithIncreasingValues() {
         ArrayList<Pair<Integer, Integer>> result = new ArrayList<>();
-        for(int i = 0 ; i < pollutionMap.length; i++) {
-            for(int j = 0 ; j < pollutionMap[i].length; j++) {
-                if(pollutionMap[i][j] > permissibleConcentration) {
+        for(int i = 0; i < currentPollutionMap.length; i++) {
+            for(int j = 0; j < currentPollutionMap[i].length; j++) {
+                if(currentPollutionMap[i][j] > permissibleConcentration) {
                     result.add(new Pair<>(i, j));
                 }
             }
@@ -69,6 +78,15 @@ public class City implements Cloneable {
     }
     public double getCityFund() {
         return cityFund;
+    }
+
+    public Weather getCurrentWeather() {
+        return currentWeather;
+    }
+
+    @Override
+    public String toString() {
+         return getInfo();
     }
 
     @Override

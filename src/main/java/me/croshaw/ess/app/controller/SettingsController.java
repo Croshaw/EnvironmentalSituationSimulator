@@ -190,7 +190,7 @@ public class SettingsController implements Initializable {
     }
     @FXML
     private void onSaveButtonClick() {
-        File file = fileChooser.showSaveDialog(MainController.STAGE);
+        File file = fileChooser.showSaveDialog(new Stage());
         if(file == null)
             return;
         try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file)))
@@ -208,7 +208,7 @@ public class SettingsController implements Initializable {
     }
     @FXML
     private void onLoadButtonClick() {
-        File file = fileChooser.showOpenDialog(MainController.STAGE);
+        File file = fileChooser.showOpenDialog(new Stage());
         if (file == null)
             return;
         try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file)))
