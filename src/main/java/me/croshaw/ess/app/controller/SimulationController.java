@@ -10,6 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import me.croshaw.ess.model.Car;
+import me.croshaw.ess.model.CarSpecialDrivingMode;
 import me.croshaw.ess.model.Company;
 import me.croshaw.ess.settings.SimulationSettings;
 import me.croshaw.ess.util.NumberHelper;
@@ -49,6 +50,7 @@ public class SimulationController implements Initializable {
     TreeItem<String> cityBadCompanies;
     TreeItem<String> cityCurCars;
     TreeItem<String> companyTree;
+    TreeItem<String> carSDM;
     TreeItem<String> cars;
     ArrayList<TreeItem<String>> companyItems = new ArrayList<>();
     private void updateCity() {
@@ -71,6 +73,12 @@ public class SimulationController implements Initializable {
         for(Car car : currentCars) {
             TreeItem<String> tCar = new TreeItem<>(Integer.toString(car.getNumber()));
             cityCurCars.getChildren().add(tCar);
+        }
+        if(simulationController.getCarManager().getSpecialDrivingMode() != CarSpecialDrivingMode.NONE && simulationController.getCarManager().getSpecialDrivingMode().isValid()) {
+            if(!city.getChildren().contains(carSDM))
+                city.getChildren().add(carSDM);
+        } else {
+            city.getChildren().remove(carSDM);
         }
     }
     private void updateCompany() {
@@ -205,7 +213,7 @@ public class SimulationController implements Initializable {
         });
         root = new TreeItem<>("Симуляция");
         city = new TreeItem<>("Город");
-
+        carSDM = new TreeItem<>("Специальный режим машин");
         weatherTreeItem = new TreeItem<>();
         cityFundItem = new TreeItem<>();
         cityMax = new TreeItem<>();

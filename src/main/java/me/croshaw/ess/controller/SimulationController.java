@@ -28,6 +28,7 @@ public class SimulationController implements Serializable {
     private final City city;
     private final CompanyManager companyManager;
     private final CarManager carManager;
+    private double[][] cashedCompaniesLastMap;
     private transient SimulationView simulationView;
     private transient Timeline simulationTimeline;
     private transient Timeline drawTimeLine;
@@ -50,6 +51,7 @@ public class SimulationController implements Serializable {
         speed = 0.1f;
         badCompany = new HashSet<>();
         setupView(canvas);
+        cashedCompaniesLastMap = new double[mapSettings.getRows()][mapSettings.getColumns()];
     }
     public void setupCarMode() {
         if(carManager.getSpecialDrivingMode().getPredicate() == null)
@@ -128,6 +130,7 @@ public class SimulationController implements Serializable {
         //? Шаг 1
         companyManager.updatePollutionMap(RandomUtils.RANDOM);
         carManager.updateMap();
+        cashedCompaniesLastMap = NumberHelper.matrixReplaceMax(NumberHelper.merge(companyManager.getPollutionMap(), cashedCompaniesLastMap, NumberHelper.matrixMinus(city.getPassiveReductionPollutionMap())), 0);
         city.updatePollutionMap(NumberHelper.merge(companyManager.getPollutionMap(), carManager.getPollutionMap()));
         city.reducePollution();
         var pointsWithIncreasingValues = city.getPointsWithIncreasingValues(); //! Доделать??
@@ -136,7 +139,7 @@ public class SimulationController implements Serializable {
         city.addToFund(companyManager.getTaxes());
 
         //? Шаг 3 штрафные санкции
-        var fines = companyManager.getFinesAndBadCompanies(city.getPollutionMap());
+        var fines = companyManager.getFinesAndBadCompanies(cashedCompaniesLastMap);
         city.addToFund(fines.getFirst());
         badCompany = fines.getSecond();
         badCompany.forEach(company -> company.suspendWork(Duration.ofDays(3)));

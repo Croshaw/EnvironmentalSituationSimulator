@@ -32,7 +32,7 @@ public class City implements Cloneable, IPollutionMap, Serializable {
     public void updatePollutionMap(double[][] pollutionMap) {
         currentPollutionMap = NumberHelper.merge(currentPollutionMap, pollutionMap);
     }
-    private double[][] getPassiveReductionPollutionMap() {
+    public double[][] getPassiveReductionPollutionMap() {
         double[][] result = new double[passiveReductionPollutionMap.length][passiveReductionPollutionMap[0].length];
         for(int i = 0 ; i < passiveReductionPollutionMap.length; i++) {
             for(int j = 0; j < passiveReductionPollutionMap[i].length; j++) {
@@ -42,7 +42,7 @@ public class City implements Cloneable, IPollutionMap, Serializable {
         return result;
     }
     public void reducePollution() {
-        currentPollutionMap = NumberHelper.matrixReplaceMax(NumberHelper.matrixMinus(NumberHelper.matrixMinus(currentPollutionMap), getPassiveReductionPollutionMap()), 0);
+        currentPollutionMap = NumberHelper.matrixReplaceMax(NumberHelper.merge(currentPollutionMap, NumberHelper.matrixMinus(getPassiveReductionPollutionMap())), 0);
     }
     public void setCurrentWeather(Weather weather) {
         currentWeather = weather;
