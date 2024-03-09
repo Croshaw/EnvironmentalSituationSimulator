@@ -87,9 +87,9 @@ public class SimulationController implements Serializable {
         simulationTimeline.rateProperty().setValue(speed);
     }
     public void tryToSetupFilter(Company company) {
-        if(city.getCityFund() > filterSettings.getPrice()) {
+        if(city.getCityFund() > filterSettings.getPrice() && company.getFilterInstallationDuration() == null) {
             city.removeFromFund(filterSettings.getPrice());
-            company.addFilter(filterSettings.getEmissionReduction());
+            company.setFilterInstallationDuration(filterSettings.getInstallationDuration());
         }
     }
     public void stop() {
@@ -147,6 +147,7 @@ public class SimulationController implements Serializable {
             , RandomUtils.RANDOM.nextInt(1, 5));
         }
         //? Шаг 5
+        companyManager.installFilters(filterSettings.getEmissionReduction());
         fines.getSecond().forEach(this::tryToSetupFilter);
     }
     public void setSpecialDrivingMode(CarSpecialDrivingMode mode, long dayCount) {

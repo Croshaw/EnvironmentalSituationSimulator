@@ -18,6 +18,7 @@ public class Company implements IPollutionMap, Serializable {
     private float emissionFluctuations;
     private Duration sanctionDuration;
     private int countFilters;
+    private Duration filterInstallationDuration;
     public Company(double emission, Pair<Integer, Integer> coordinates, CompanySettings companySettings, MapSettings mapSettings) {
         this.emission = emission;
         countFilters = 0;
@@ -29,6 +30,11 @@ public class Company implements IPollutionMap, Serializable {
         fill(emission, coordinates.getFirst(), coordinates.getSecond());
         sanctionDuration = Duration.ZERO;
     }
+
+    public Duration getFilterInstallationDuration() {
+        return filterInstallationDuration;
+    }
+
     private void fill(double emission, int x, int y) {
         if(x == -1 || x == defaultPollutionMap.length || y == -1 || y == defaultPollutionMap[0].length || defaultPollutionMap[x][y] >= emission || emission == 0)
             return;
@@ -105,5 +111,9 @@ public class Company implements IPollutionMap, Serializable {
     @Override
     public String getInfo() {
         return "null";
+    }
+
+    public void setFilterInstallationDuration(Duration installationDuration) {
+        this.filterInstallationDuration = installationDuration;
     }
 }

@@ -8,6 +8,7 @@ import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
@@ -33,6 +34,17 @@ public class CompanyManager implements Cloneable, IPollutionMap, Serializable {
         if(t.length == 0)
             return new double[mapSettings.getRows()][mapSettings.getColumns()];
         return NumberHelper.merge(t);
+    }
+    public void installFilters(float filterEmissionReduction) {
+        for(Company company : companies) {
+            if(company.getFilterInstallationDuration() != null) {
+                company.setFilterInstallationDuration(company.getFilterInstallationDuration().minusDays(1));
+                if(company.getFilterInstallationDuration().equals(Duration.ZERO)) {
+                    company.setFilterInstallationDuration(null);
+                    company.addFilter(filterEmissionReduction);
+                }
+            }
+        }
     }
 
     @Override
