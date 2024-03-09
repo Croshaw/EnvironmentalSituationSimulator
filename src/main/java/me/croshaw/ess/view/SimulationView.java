@@ -4,6 +4,7 @@ import javafx.geometry.BoundingBox;
 import javafx.scene.canvas.Canvas;
 import me.croshaw.ess.model.City;
 import me.croshaw.ess.settings.CitySettings;
+import me.croshaw.ess.util.Pair;
 
 public class SimulationView {
     private final MapView cityView;
@@ -14,5 +15,12 @@ public class SimulationView {
     }
     public void draw() {
         cityView.draw(canvas.getGraphicsContext2D());
+    }
+    public void select(Pair<Integer, Integer> p) {
+        cityView.select(p);
+    }
+
+    public void clear() {
+        canvas.getGraphicsContext2D().clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 }

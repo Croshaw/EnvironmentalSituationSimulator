@@ -10,6 +10,7 @@ import me.croshaw.ess.model.Company;
 import me.croshaw.ess.model.SimulationSummary;
 import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.NumberHelper;
+import me.croshaw.ess.util.Pair;
 import me.croshaw.ess.util.RandomUtils;
 import me.croshaw.ess.view.SimulationView;
 
@@ -111,6 +112,7 @@ public class SimulationController implements Serializable {
         simulationTimeline.play();
         drawTimeLine = new Timeline(
                 new KeyFrame(javafx.util.Duration.millis(20)),
+                new KeyFrame(javafx.util.Duration.ONE, actionEvent -> simulationView.clear()),
                 new KeyFrame(javafx.util.Duration.ONE, actionEvent -> simulationView.draw()),
                 new KeyFrame(javafx.util.Duration.ONE, actionEvent -> runnable.run())
         );
@@ -174,5 +176,17 @@ public class SimulationController implements Serializable {
     public void setSpeed(float speed) {
         simulationTimeline.rateProperty().setValue(speed);
         this.speed = speed;
+    }
+
+    public void setVisualSelect(int id) {
+        if(id == -1) {
+            simulationView.select(null);
+            return;
+        }
+        var company = companyManager.getCompanies().get(id);
+        if(company != null)
+            simulationView.select(company.getCoordinates());
+        else
+            simulationView.select(null);
     }
 }

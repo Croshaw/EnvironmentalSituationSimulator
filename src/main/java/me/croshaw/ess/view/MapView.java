@@ -7,6 +7,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import me.croshaw.ess.model.IPollutionMap;
+import me.croshaw.ess.util.Pair;
 
 public class MapView {
     private static final Color[] colors = new Color[]
@@ -21,6 +22,7 @@ public class MapView {
     private final IPollutionMap mapInfo;
     private final Bounds bounds;
     private final double step;
+    private Pair<Integer, Integer> selectable;
     public MapView(IPollutionMap mapInfo, Bounds bounds, double temp) {
         this.mapInfo = mapInfo;
         this.bounds = bounds;
@@ -42,7 +44,6 @@ public class MapView {
                 g.fillRect(bounds.getMinX()+x, bounds.getMinY()+y, cellWidth, cellHeight);
                 if(drawText) {
                     g.setFill(Color.BLACK);
-                    Font font = g.getFont();
                     Text text = new Text(Double.toString(map[i][j]));
                     text.setFont(g.getFont());
                     g.fillText(Double.toString(map[i][j]), bounds.getMinX() + x + (cellWidth / 2 - text.getLayoutBounds().getWidth() / 2), bounds.getMinY() + y + (cellHeight / 2));
@@ -58,5 +59,18 @@ public class MapView {
                 g.fillRect(i * cellWidth + bounds.getMinX(), bounds.getMinY(), 1, height);
             }
         }
+        if(selectable != null) {
+            g.setFill(Color.BLUE);
+            double y = selectable.getFirst() * cellHeight + bounds.getMinY();
+            double x = selectable.getSecond() * cellWidth + bounds.getMinX();
+            double borderSize = 5;
+            g.fillRect(x, y, cellWidth - borderSize, borderSize);
+            g.fillRect(x, y, borderSize, cellHeight);
+            g.fillRect(x + cellWidth - borderSize, y, borderSize, cellHeight);
+            g.fillRect(x, y+cellHeight-borderSize, cellWidth - borderSize, borderSize);
+        }
+    }
+    public void select(Pair<Integer, Integer> pair) {
+        selectable = pair;
     }
 }

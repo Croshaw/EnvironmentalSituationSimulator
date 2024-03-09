@@ -4,6 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -112,6 +113,7 @@ public class SimulationController implements Initializable {
         updateCompany();
     }
     private void setup() {
+
         var companies = simulationController.getCompanyManager().getCompanies();
         int i = 1;
         companyTree.getChildren().clear();
@@ -222,6 +224,19 @@ public class SimulationController implements Initializable {
         root.getChildren().add(companyTree);
         root.getChildren().add(cars);
         simulationTreeView.setRoot(root);
+        simulationTreeView.addEventHandler(MouseEvent.MOUSE_CLICKED, event -> {
+            if(simulationController != null && event.getClickCount() == 1){
+                var selectedItem = simulationTreeView.getSelectionModel().getSelectedItem();
+                if(selectedItem instanceof TreeItem<?> stringTreeItem) {
+                    if(stringTreeItem.getParent() == companyTree) {
+                        int id = companyItems.indexOf(stringTreeItem);
+                        simulationController.setVisualSelect(id);
+                        return;
+                    }
+                }
+                simulationController.setVisualSelect(-1);
+            }
+        });
     }
 
     public void resizeWidth() {
