@@ -2,8 +2,8 @@ package me.croshaw.ess.app.controller;
 
 import javafx.fxml.FXML;
 import javafx.stage.Stage;
-import me.croshaw.ess.app.SimulationApplication;
 import me.croshaw.ess.app.SettingsApplication;
+import me.croshaw.ess.app.SimulationApplication;
 
 public class MainController {
     private final SettingsApplication settingsApplication = new SettingsApplication();

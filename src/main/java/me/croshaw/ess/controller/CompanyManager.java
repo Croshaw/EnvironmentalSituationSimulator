@@ -3,7 +3,6 @@ package me.croshaw.ess.controller;
 import me.croshaw.ess.model.Company;
 import me.croshaw.ess.model.IPollutionMap;
 import me.croshaw.ess.settings.CompanySettings;
-import me.croshaw.ess.settings.FilterSettings;
 import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;

@@ -9,9 +9,6 @@ import me.croshaw.ess.settings.MapSettings;
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CarManager implements Cloneable, IPollutionMap, Serializable {
     private ArrayList<Car> cars;

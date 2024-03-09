@@ -2,7 +2,10 @@ package me.croshaw.ess.app.controller;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.VBox;
 import me.croshaw.ess.settings.CompanySettings;
 import me.croshaw.ess.settings.SimulationSettings;

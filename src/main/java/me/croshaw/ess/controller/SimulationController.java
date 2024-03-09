@@ -11,14 +11,12 @@ import me.croshaw.ess.model.SimulationSummary;
 import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.RandomUtils;
-import me.croshaw.ess.view.CityView;
 import me.croshaw.ess.view.SimulationView;
 
 import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.function.UnaryOperator;
 
 public class SimulationController implements Serializable {
     public final FilterSettings filterSettings;

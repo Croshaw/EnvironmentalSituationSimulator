@@ -8,7 +8,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import me.croshaw.ess.app.CompanySettingsApplication;
 import me.croshaw.ess.app.MapSettingsApplication;
 import me.croshaw.ess.model.Weather;

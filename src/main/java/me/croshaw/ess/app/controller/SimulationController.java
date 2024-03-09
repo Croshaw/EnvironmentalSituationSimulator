@@ -4,17 +4,15 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
-import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import me.croshaw.ess.model.Car;
 import me.croshaw.ess.model.Company;
-import me.croshaw.ess.settings.*;
+import me.croshaw.ess.settings.SimulationSettings;
 import me.croshaw.ess.util.NumberHelper;
 
 import java.io.*;
 import java.net.URL;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
