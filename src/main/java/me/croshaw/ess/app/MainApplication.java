@@ -11,6 +11,7 @@ public class MainApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("main-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Симуляция");
+        stage.resizableProperty().setValue(false);
         stage.setScene(scene);
         stage.show();
     }

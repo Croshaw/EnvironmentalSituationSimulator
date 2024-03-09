@@ -10,6 +10,7 @@ public class MapSettingsApplication extends Application {
     public void start(Stage stage) throws Exception {
         FXMLLoader fxmlLoader = new FXMLLoader(MapSettingsApplication.class.getResource("map-settings-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
+        stage.resizableProperty().setValue(false);
         stage.setTitle("Настройки карты");
         stage.setScene(scene);
         stage.show();

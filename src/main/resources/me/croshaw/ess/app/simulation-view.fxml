@@ -8,16 +8,12 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="575.0" prefWidth="885.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.croshaw.ess.app.controller.SimulationController">
+<VBox fx:id="mainBox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="585.0" prefWidth="922.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="me.croshaw.ess.app.controller.SimulationController">
    <children>
-      <HBox prefHeight="100.0" prefWidth="200.0">
+      <HBox fx:id="canBox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
          <children>
-            <Canvas fx:id="canvas" height="492.0" width="602.0" />
-            <VBox prefHeight="345.0" prefWidth="298.0">
-               <children>
-                  <TreeView fx:id="simulationTreeView" prefHeight="495.0" prefWidth="283.0" />
-               </children>
-            </VBox>
+            <Canvas fx:id="canvas" height="492.0" width="634.0" />
+            <TreeView fx:id="simulationTreeView" prefHeight="492.0" prefWidth="284.0" />
          </children>
       </HBox>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="200.0" spacing="50.0">

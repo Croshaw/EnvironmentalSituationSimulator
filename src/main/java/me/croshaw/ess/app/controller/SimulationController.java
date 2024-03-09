@@ -4,6 +4,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import me.croshaw.ess.model.Car;
@@ -20,6 +22,8 @@ public class SimulationController implements Initializable {
     private final FileChooser fileChooser = new FileChooser();
     private final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DAT files (*.dat)", "*.dat");
     @FXML
+    VBox mainBox;
+    @FXML
     Canvas canvas;
     @FXML
     TreeView simulationTreeView;
@@ -33,6 +37,8 @@ public class SimulationController implements Initializable {
     Button pauseButton;
     @FXML
     Button fileAction;
+    @FXML
+    HBox canBox;
     me.croshaw.ess.controller.SimulationController simulationController;
     TreeItem<String> root;
     TreeItem<String> city;
@@ -77,6 +83,10 @@ public class SimulationController implements Initializable {
             TreeItem<String> work = new TreeItem<>(company.isWork() ? "Работает" : "Не работает");
             companyItem.getChildren().add(companyEmissions);
             companyItem.getChildren().add(filters);
+            if(company.getFilterInstallationDuration() != null) {
+                TreeItem<String> filterInstallation = new TreeItem<>("До завершения установки фильтра: %s".formatted(company.getFilterInstallationDuration()));
+                companyItem.getChildren().add(filterInstallation);
+            }
             companyItem.getChildren().add(work);
             if(!company.isWork()) {
                 TreeItem<String> workDuration = new TreeItem<>(company.getSanctionDuration().toString());
@@ -212,5 +222,21 @@ public class SimulationController implements Initializable {
         root.getChildren().add(companyTree);
         root.getChildren().add(cars);
         simulationTreeView.setRoot(root);
+    }
+
+    public void resizeWidth() {
+        var width = canBox.getWidth();
+        canvas.setWidth(width* 0.7);
+        simulationTreeView.setPrefWidth(width* 0.3);
+    }
+
+    public void resizeHeight() {
+        double newH = mainBox.getHeight()* 0.9;
+        canBox.setMinHeight(newH);
+        canBox.setMaxHeight(newH);
+        canBox.setPrefHeight(newH);
+        var height = canBox.getHeight();
+        canvas.setHeight(height);
+        simulationTreeView.setPrefWidth(height);
     }
 }

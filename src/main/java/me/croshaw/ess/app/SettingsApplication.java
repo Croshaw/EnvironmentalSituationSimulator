@@ -11,6 +11,7 @@ public class SettingsApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(SettingsApplication.class.getResource("settings-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Настройки");
+        stage.resizableProperty().setValue(false);
         stage.setScene(scene);
         stage.show();
     }

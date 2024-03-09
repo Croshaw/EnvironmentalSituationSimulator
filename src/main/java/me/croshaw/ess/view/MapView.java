@@ -1,6 +1,7 @@
 package me.croshaw.ess.view;
 
 import javafx.geometry.Bounds;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -26,9 +27,12 @@ public class MapView {
         step = temp / colors.length;
     }
     public void draw(GraphicsContext g) {
+        Canvas canvas = g.getCanvas();
+        double width = canvas.getWidth() - bounds.getWidth();
+        double height = canvas.getHeight() - bounds.getHeight();
         double[][] map = mapInfo.getPollutionMap();
-        double cellHeight = bounds.getHeight() / map.length;
-        double cellWidth = bounds.getWidth() / map[0].length;
+        double cellHeight = height / map.length;
+        double cellWidth = width / map[0].length;
         for(int i = 0; i < map.length; i++) {
             for(int j = 0; j < map[i].length; j++) {
                 int colorIndex = (int)Math.min(Math.ceil(map[i][j] / step), colors.length-1);
@@ -48,10 +52,10 @@ public class MapView {
         if(drawBorder) {
             g.setFill(Color.BLACK);
             for (int i = 0; i <= map.length; i++) {
-                g.fillRect(bounds.getMinX(), bounds.getMinY() + i * cellHeight, bounds.getWidth(), 1);
+                g.fillRect(bounds.getMinX(), bounds.getMinY() + i * cellHeight, width, 1);
             }
             for (int i = 0; i <= map[0].length; i++) {
-                g.fillRect(i * cellWidth + bounds.getMinX(), bounds.getMinY(), 1, bounds.getHeight());
+                g.fillRect(i * cellWidth + bounds.getMinX(), bounds.getMinY(), 1, height);
             }
         }
     }

@@ -11,6 +11,7 @@ public class CompanySettingsApplication extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(MainApplication.class.getResource("company-settings-view.fxml"));
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Настройки компаний");
+        stage.resizableProperty().setValue(false);
         stage.setScene(scene);
         stage.show();
     }
