@@ -14,16 +14,18 @@ import me.croshaw.ess.util.RandomUtils;
 import me.croshaw.ess.view.CityView;
 import me.croshaw.ess.view.SimulationView;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.UnaryOperator;
 
-public class SimulationController {
+public class SimulationController implements Serializable {
     public final FilterSettings filterSettings;
+    public final CitySettings citySettings;
     public final Duration simulationDuration;
     private int currentDay;
-    private final HashMap<Integer, SimulationSummary> journal;
+    private transient final HashMap<Integer, SimulationSummary> journal;
     private final City city;
     private final CompanyManager companyManager;
     private final CarManager carManager;
@@ -31,7 +33,7 @@ public class SimulationController {
     private transient Timeline simulationTimeline;
     private transient Timeline drawTimeLine;
     private float speed;
-    private transient HashSet<Company> badCompany;
+    private HashSet<Company> badCompany;
     public SimulationController(CarSettings carSettings
             , CompanySettings companySettings
             , MapSettings mapSettings
@@ -45,9 +47,26 @@ public class SimulationController {
         city = new City(citySettings.getStartWeather(), citySettings, mapSettings);
         companyManager = new CompanyManager(companySettings, mapSettings);
         carManager = new CarManager(carSettings, mapSettings, RandomUtils.RANDOM);
-        simulationView = new SimulationView(city, citySettings, canvas);
+        this.citySettings = citySettings;
         speed = 0.1f;
         badCompany = new HashSet<>();
+        setupView(canvas);
+    }
+    public void setupCarMode() {
+        if(carManager.getSpecialDrivingMode().getPredicate() == null)
+            carManager.setSpecialDrivingMode(CarSpecialDrivingMode.NONE, Duration.ZERO);
+        else {
+            var sp = carManager.getSpecialDrivingMode();
+            for(int i = 0; i < SimulationSettings.CAR_SPECIAL_DRIVING_MODE.size();i++) {
+                if(SimulationSettings.CAR_SPECIAL_DRIVING_MODE.get(i).getPredicate().equals(sp.getPredicate())){
+                    carManager.setSpecialDrivingMode(SimulationSettings.CAR_SPECIAL_DRIVING_MODE.get(i), sp.getDuration());
+                    break;
+                }
+            }
+        }
+    }
+    public void setupView(Canvas canvas) {
+        simulationView = new SimulationView(city, citySettings, canvas);
     }
     public City getCity() {
         return city;
@@ -55,10 +74,10 @@ public class SimulationController {
     public void setupTimeline(Runnable runnable) {
         simulationTimeline = new Timeline(
                 new KeyFrame(javafx.util.Duration.millis(20)),
-                new KeyFrame(javafx.util.Duration.ZERO, actionEvent -> journal.put(currentDay, new SimulationSummary(city, companyManager, carManager))),
+                //new KeyFrame(javafx.util.Duration.ZERO, actionEvent -> journal.put(currentDay, new SimulationSummary(city, companyManager, carManager))),
                 new KeyFrame(javafx.util.Duration.ZERO, actionEvent -> {
                     if(currentDay <= simulationDuration.toDays()) {
-                        runnable.run();
+                        //runnable.run();
                         simulate();
                         currentDay++;
                     } else {
@@ -93,7 +112,9 @@ public class SimulationController {
         setupTimeline(runnable);
         simulationTimeline.play();
         drawTimeLine = new Timeline(
-                new KeyFrame(javafx.util.Duration.ONE, actionEvent -> simulationView.draw())
+                new KeyFrame(javafx.util.Duration.millis(20)),
+                new KeyFrame(javafx.util.Duration.ONE, actionEvent -> simulationView.draw()),
+                new KeyFrame(javafx.util.Duration.ONE, actionEvent -> runnable.run())
         );
         drawTimeLine.setCycleCount(Animation.INDEFINITE);
         drawTimeLine.play();
@@ -140,6 +161,8 @@ public class SimulationController {
         return companyManager;
     }
     public HashSet<Company> getBadCompany() {
+        if(badCompany == null)
+            badCompany = new HashSet<>();
         return badCompany;
     }
     public int getCurrentDay() {

@@ -10,7 +10,7 @@ import java.util.Random;
 public class CompanySettings extends DefaultSettings implements Serializable, Cloneable {
     public static final Range<Integer> COMPANY_COUNT_RANGE = new Range<>(5, 12);
     public static final Range<Double> EMISSIONS_COUNT_RANGE = new Range<>(1d, 2.7d);
-    public static final Range<Double> TAX_RANGE = new Range<>(10000d, 40000d);
+    public static final Range<Double> TAX_RANGE = new Range<>(10d, 40000d);
     public static final Range<Double> MAX_EMISSIONS_RANGE = new Range<>(5d, 11d);
     public static final Range<Double> FINE_RANGE = new Range<>(10000d, 60000d);
     public static final Range<Float> EMMISION_DISTRIBUTION_RANGE = new Range<>(.01f, 1f);

@@ -1,6 +1,8 @@
 package me.croshaw.ess.model;
 
-public class Car {
+import java.io.Serializable;
+
+public class Car implements Serializable {
     private final int number;
 
     public Car(int number) {

@@ -8,11 +8,12 @@ import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
-public class CompanyManager implements Cloneable, IPollutionMap {
+public class CompanyManager implements Cloneable, IPollutionMap, Serializable {
     private final ArrayList<Company> companies;
     private final CompanySettings companySettings;
     private final MapSettings mapSettings;

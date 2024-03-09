@@ -5,10 +5,11 @@ import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.Random;
 
-public class Company implements IPollutionMap {
+public class Company implements IPollutionMap, Serializable {
     private final double emission;
     private final double[][] defaultPollutionMap;
     private double[][] currentPollutionMap;

@@ -5,9 +5,10 @@ import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
-public class City implements Cloneable, IPollutionMap {
+public class City implements Cloneable, IPollutionMap, Serializable {
     private Weather currentWeather;
     private double cityFund;
     private double[][] currentPollutionMap;

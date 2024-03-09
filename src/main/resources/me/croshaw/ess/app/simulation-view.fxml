@@ -31,6 +31,7 @@
                   <Label fx:id="speedInfo" text="0.1" />
                </children>
             </VBox>
+            <Button fx:id="fileAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="125.0" text="Загрузить" />
          </children>
       </HBox>
    </children>

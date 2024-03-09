@@ -1,9 +1,10 @@
 package me.croshaw.ess.model;
 
+import java.io.Serializable;
 import java.time.Duration;
 import java.util.function.Predicate;
 
-public class CarSpecialDrivingMode implements Cloneable {
+public class CarSpecialDrivingMode implements Cloneable, Serializable {
     public static CarSpecialDrivingMode NONE = new CarSpecialDrivingMode(null);
     private final Predicate<Car> predicate;
     private Duration duration;

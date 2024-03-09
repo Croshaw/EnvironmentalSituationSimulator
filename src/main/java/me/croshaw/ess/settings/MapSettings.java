@@ -11,14 +11,15 @@ import java.util.HashMap;
 import java.util.Random;
 
 public class MapSettings extends DefaultSettings implements Serializable, Cloneable {
-    public final static Range<Integer> ROWS_OR_COLUMNS_COUNT_RANGE = new Range<>(4, 15);
+    public final static Range<Integer> ROWS_COUNT_RANGE = new Range<>(4, 15);
+    public final static Range<Integer> COLUMNS_COUNT_RANGE = new Range<>(4, 15);
     private int rows;
     private int columns;
     private int[][] map;
     private HashMap<Integer, Pair<Integer, Integer>> companyPriorities;
     public void fillRandomly(Random random)  {
-        this.rows = ROWS_OR_COLUMNS_COUNT_RANGE.getRandom(random);
-        this.columns = ROWS_OR_COLUMNS_COUNT_RANGE.getRandom(random);
+        this.rows = ROWS_COUNT_RANGE.getRandom(random);
+        this.columns = COLUMNS_COUNT_RANGE.getRandom(random);
         map = new int[rows][columns];
         companyPriorities.clear();
         ArrayList<Integer> freePriorities = getFreePriorities();
@@ -36,9 +37,19 @@ public class MapSettings extends DefaultSettings implements Serializable, Clonea
     @Override
     public void fillDefault() {
         companyPriorities = new HashMap<>();
-        rows = ROWS_OR_COLUMNS_COUNT_RANGE.getMin();
-        columns = ROWS_OR_COLUMNS_COUNT_RANGE.getMin();
+        rows = ROWS_COUNT_RANGE.getMin();
+        columns = COLUMNS_COUNT_RANGE.getMin();
         map = new int[rows][columns];
+        int count = Math.min(CompanySettings.COMPANY_COUNT_RANGE.getMax(), rows*columns);
+        for(int i = 0; i < count; i++) {
+            int rowInd = i / columns;
+            int colInd = i % columns;
+            try {
+                addCompany(rowInd, colInd, i+1);
+            } catch (WrongCoordinatesException e) {
+                System.err.println(e.getMessage());
+            }
+        }
     }
 
     public int getRows() {
@@ -77,7 +88,7 @@ public class MapSettings extends DefaultSettings implements Serializable, Clonea
         return result;
     }
     public void resize(int newRows, int newColumns) {
-        if(newRows < ROWS_OR_COLUMNS_COUNT_RANGE.getMin() || newColumns < ROWS_OR_COLUMNS_COUNT_RANGE.getMin())
+        if(newRows < ROWS_COUNT_RANGE.getMin() || newColumns < COLUMNS_COUNT_RANGE.getMin())
             throw new IllegalArgumentException();
         if(newRows == rows && newColumns == columns)
             return;

@@ -5,16 +5,22 @@ import javafx.fxml.Initializable;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import me.croshaw.ess.model.Car;
 import me.croshaw.ess.model.Company;
-import me.croshaw.ess.settings.SimulationSettings;
+import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.NumberHelper;
 
+import java.io.*;
 import java.net.URL;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 public class SimulationController implements Initializable {
+    private final FileChooser fileChooser = new FileChooser();
+    private final FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DAT files (*.dat)", "*.dat");
     @FXML
     Canvas canvas;
     @FXML
@@ -27,6 +33,8 @@ public class SimulationController implements Initializable {
     Button startButton;
     @FXML
     Button pauseButton;
+    @FXML
+    Button fileAction;
     me.croshaw.ess.controller.SimulationController simulationController;
     TreeItem<String> root;
     TreeItem<String> city;
@@ -35,6 +43,7 @@ public class SimulationController implements Initializable {
     TreeItem<String> cityMax;
     TreeItem<String> cityBadCompanies;
     TreeItem<String> cityCurCars;
+    TreeItem<String> companyTree;
     TreeItem<String> cars;
     ArrayList<TreeItem<String>> companyItems = new ArrayList<>();
     private void updateCity() {
@@ -94,45 +103,33 @@ public class SimulationController implements Initializable {
         updateCity();
         updateCompany();
     }
+    private void setup() {
+        var companies = simulationController.getCompanyManager().getCompanies();
+        int i = 1;
+        companyTree.getChildren().clear();
+        companyItems.clear();
+        for (Company company : companies) {
+            TreeItem<String> companyItem = new TreeItem<>("Компания %s".formatted(i++));
+            companyItems.add(companyItem);
+            companyTree.getChildren().add(companyItem);
+        }
+        cars.getChildren().clear();
+        update();
+        updateCar();
+        simulationController.start(this::update);
+    }
     @FXML
     void onStartButtonClick() {
         if(startButton.getText().equals("Старт")) {
             simulationController = SimulationSettings.GET_CONTROLLER(canvas);
-            root = new TreeItem<>("Симуляция");
-            city = new TreeItem<>("Город");
-
-            weatherTreeItem = new TreeItem<>();
-            cityFundItem = new TreeItem<>();
-            cityMax = new TreeItem<>();
-            cityBadCompanies = new TreeItem<>();
-            cityCurCars = new TreeItem<>();
-            city.getChildren().add(weatherTreeItem);
-            city.getChildren().add(cityFundItem);
-            city.getChildren().add(cityMax);
-            city.getChildren().add(cityBadCompanies);
-            city.getChildren().add(cityCurCars);
-
-            TreeItem<String> companyTree = new TreeItem<>("Компании");
-            var companies = simulationController.getCompanyManager().getCompanies();
-            int i = 1;
-            for (Company company : companies) {
-                TreeItem<String> companyItem = new TreeItem<>("Компания %s".formatted(i++));
-                companyItems.add(companyItem);
-                companyTree.getChildren().add(companyItem);
-            }
-            cars = new TreeItem<>("Машины");
-            root.getChildren().add(city);
-            root.getChildren().add(companyTree);
-            root.getChildren().add(cars);
-            update();
-            updateCar();
-            simulationTreeView.setRoot(root);
-            simulationController.start(this::update);
+            setup();
             startButton.setText("Стоп");
+            fileAction.setText("Сохранить");
             pauseButton.disableProperty().setValue(false);
         }
         else {
             startButton.setText("Старт");
+            fileAction.setText("Загрузить");
             pauseButton.disableProperty().setValue(true);
             simulationController.stop();
         }
@@ -141,9 +138,42 @@ public class SimulationController implements Initializable {
         if(simulationController != null)
             simulationController.stop();
     }
-
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+        fileChooser.getExtensionFilters().add(extFilter);
+        fileAction.setOnAction(actionEvent -> {
+            if(fileAction.getText().equals("Загрузить")) {
+                File file = fileChooser.showOpenDialog(new Stage());
+                if (file == null)
+                    return;
+                try(ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file)))
+                {
+                    simulationController =(me.croshaw.ess.controller.SimulationController) ois.readObject();
+                    simulationController.setupView(canvas);
+                    simulationController.setupCarMode();
+                    setup();
+                    simulationController.pause();
+                    startButton.setText("Стоп");
+                    pauseButton.setText("Возобновить");
+                    fileAction.setText("Сохранить");
+                    pauseButton.disableProperty().setValue(false);
+                }
+                catch(Exception ex) {
+                    System.err.println(ex.getMessage());
+                }
+            } else {
+                File file = fileChooser.showSaveDialog(new Stage());
+                if(file == null)
+                    return;
+                try(ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file)))
+                {
+                    oos.writeObject(simulationController);
+                }
+                catch(Exception ex){
+                    System.err.println(ex.getMessage());
+                }
+            }
+        });
         speedSlider.valueProperty().addListener((observableValue, number, t1) -> {
             float round = NumberHelper.round(t1.floatValue(), 2);
             if(simulationController != null) {
@@ -163,5 +193,26 @@ public class SimulationController implements Initializable {
                 simulationController.resume();
             }
         });
+        root = new TreeItem<>("Симуляция");
+        city = new TreeItem<>("Город");
+
+        weatherTreeItem = new TreeItem<>();
+        cityFundItem = new TreeItem<>();
+        cityMax = new TreeItem<>();
+        cityBadCompanies = new TreeItem<>();
+        cityCurCars = new TreeItem<>();
+        city.getChildren().add(weatherTreeItem);
+        city.getChildren().add(cityFundItem);
+        city.getChildren().add(cityMax);
+        city.getChildren().add(cityBadCompanies);
+        city.getChildren().add(cityCurCars);
+
+        companyTree = new TreeItem<>("Компании");
+
+        cars = new TreeItem<>("Машины");
+        root.getChildren().add(city);
+        root.getChildren().add(companyTree);
+        root.getChildren().add(cars);
+        simulationTreeView.setRoot(root);
     }
 }
