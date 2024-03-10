@@ -1,7 +1,10 @@
 package me.croshaw.ess.app.controller;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.geometry.Pos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
@@ -12,7 +15,9 @@ import javafx.stage.Stage;
 import me.croshaw.ess.model.Car;
 import me.croshaw.ess.model.CarSpecialDrivingMode;
 import me.croshaw.ess.model.Company;
+import me.croshaw.ess.model.Weather;
 import me.croshaw.ess.settings.SimulationSettings;
+import me.croshaw.ess.util.Filters;
 import me.croshaw.ess.util.NumberHelper;
 
 import java.io.*;
@@ -41,6 +46,8 @@ public class SimulationController implements Initializable {
     Button fileAction;
     @FXML
     HBox canBox;
+    @FXML
+    Button interactionButton;
     me.croshaw.ess.controller.SimulationController simulationController;
     TreeItem<String> root;
     TreeItem<String> city;
@@ -50,9 +57,10 @@ public class SimulationController implements Initializable {
     TreeItem<String> cityBadCompanies;
     TreeItem<String> cityCurCars;
     TreeItem<String> companyTree;
-    TreeItem<String> carSDM;
+    TreeItem<String> carMode;
     TreeItem<String> cars;
     ArrayList<TreeItem<String>> companyItems = new ArrayList<>();
+    VBox interactionBox;
     private void updateCity() {
         weatherTreeItem.setValue("Погода: %s".formatted(simulationController.getCity().getCurrentWeather().name()));
         cityFundItem.setValue("Казна: %s".formatted(simulationController.getCity().getCityFund()));
@@ -65,7 +73,11 @@ public class SimulationController implements Initializable {
             TreeItem<String> com = new TreeItem<>("Компания %s".formatted(simulationController.getCompanyManager().getCompanies().indexOf(company)+1));
             cityBadCompanies.getChildren().add(com);
         }
-
+        if(simulationController.getCurrentSpecialCarMode() != CarSpecialDrivingMode.NONE && simulationController.getCurrentSpecialCarMode().isValid()) {
+            carMode.setValue(simulationController.getCurrentSpecialCarMode().getName()+" [%s д.]".formatted(simulationController.getCurrentSpecialCarMode().getDuration().toDays()));
+        } else {
+            carMode.setValue("Нет особого режима на дорогах");
+        }
 
         var currentCars = simulationController.getCarManager().getCurrentCars();
         cityCurCars.getChildren().clear();
@@ -73,12 +85,6 @@ public class SimulationController implements Initializable {
         for(Car car : currentCars) {
             TreeItem<String> tCar = new TreeItem<>(Integer.toString(car.getNumber()));
             cityCurCars.getChildren().add(tCar);
-        }
-        if(simulationController.getCarManager().getSpecialDrivingMode() != CarSpecialDrivingMode.NONE && simulationController.getCarManager().getSpecialDrivingMode().isValid()) {
-            if(!city.getChildren().contains(carSDM))
-                city.getChildren().add(carSDM);
-        } else {
-            city.getChildren().remove(carSDM);
         }
     }
     private void updateCompany() {
@@ -211,18 +217,88 @@ public class SimulationController implements Initializable {
                 simulationController.resume();
             }
         });
+
+        interactionBox = new VBox();
+        interactionBox.setSpacing(20);
+
+        ComboBox<Weather> weatherCB = new ComboBox<>();
+        ObservableList<Weather> weathers = FXCollections.observableArrayList();
+        weathers.addAll(SimulationSettings.WEATHERS);
+        weatherCB.setItems(weathers);
+        Label label1 = new Label("Погода");
+        VBox wVBox = new VBox(label1, weatherCB);
+        wVBox.setSpacing(10);
+        Button setWeather = new Button("Задать");
+        setWeather.setOnAction(actionEvent -> {
+            if(simulationController != null && simulationController.isRunning() && weatherCB.getValue() != null) {
+                simulationController.pause();
+                pauseButton.setText("Возобновить");
+                simulationController.setWeather(weatherCB.getValue());
+                update();
+            }
+        });
+        HBox weatherHBox = new HBox(wVBox, setWeather);
+        wVBox.setAlignment(Pos.CENTER);
+        wVBox.setSpacing(10);
+        weatherHBox.setAlignment(Pos.CENTER);
+        weatherHBox.setSpacing(10);
+
+        ComboBox<CarSpecialDrivingMode> temp = new ComboBox<>();
+        ObservableList<CarSpecialDrivingMode> modes = FXCollections.observableArrayList();
+        modes.addAll(SimulationSettings.CAR_SPECIAL_DRIVING_MODE);
+        temp.setItems(modes);
+        VBox tVBox = new VBox(new Label("Режим авто"), temp);
+        tVBox.setAlignment(Pos.CENTER);
+        tVBox.setSpacing(10);
+        TextField field = new TextField();
+        field.setTextFormatter(new TextFormatter<>(Filters.integerFilter));
+        VBox tVBox1 = new VBox(new Label("Длительность"), field);
+        tVBox1.setAlignment(Pos.CENTER);
+        tVBox1.setSpacing(10);
+        Button button1 = new Button("Задать");
+        button1.setOnAction(actionEvent -> {
+            if(simulationController != null && simulationController.isRunning()) {
+                if(!field.getText().isEmpty() && temp.getValue() != null) {
+                    simulationController.pause();
+                    pauseButton.setText("Возобновить");
+                    simulationController.setSpecialDrivingMode(temp.getValue(), Integer.parseInt(field.getText()));
+                    update();
+                }
+            }
+        });
+        HBox tt = new HBox(tVBox, tVBox1);
+        tt.setSpacing(10);
+        tt.setAlignment(Pos.CENTER);
+        VBox ttt = new VBox(tt, button1);
+        ttt.setAlignment(Pos.CENTER);
+        ttt.setSpacing(10);
+        interactionBox.getChildren().add(weatherHBox);
+        interactionBox.getChildren().add(ttt);
+
+        interactionButton.setOnAction(actionEvent -> {
+            if(interactionButton.getText().equals("Взаимодействие")) {
+                interactionButton.setText("Объекты");
+                canBox.getChildren().remove(simulationTreeView);
+                canBox.getChildren().add(interactionBox);
+            } else {
+                interactionButton.setText("Взаимодействие");
+                canBox.getChildren().remove(interactionBox);
+                canBox.getChildren().add(simulationTreeView);
+            }
+        });
         root = new TreeItem<>("Симуляция");
         city = new TreeItem<>("Город");
-        carSDM = new TreeItem<>("Специальный режим машин");
         weatherTreeItem = new TreeItem<>();
         cityFundItem = new TreeItem<>();
         cityMax = new TreeItem<>();
         cityBadCompanies = new TreeItem<>();
         cityCurCars = new TreeItem<>();
+        carMode = new TreeItem<>();
         city.getChildren().add(weatherTreeItem);
         city.getChildren().add(cityFundItem);
         city.getChildren().add(cityMax);
         city.getChildren().add(cityBadCompanies);
+        city.getChildren().add(carMode);
         city.getChildren().add(cityCurCars);
 
         companyTree = new TreeItem<>("Компании");
@@ -251,6 +327,7 @@ public class SimulationController implements Initializable {
         var width = canBox.getWidth();
         canvas.setWidth(width* 0.7);
         simulationTreeView.setPrefWidth(width* 0.3);
+        interactionBox.setPrefWidth(width* 0.3);
     }
 
     public void resizeHeight() {
@@ -260,6 +337,7 @@ public class SimulationController implements Initializable {
         canBox.setPrefHeight(newH);
         var height = canBox.getHeight();
         canvas.setHeight(height);
-        simulationTreeView.setPrefWidth(height);
+        simulationTreeView.setPrefHeight(height);
+        interactionBox.setPrefHeight(height);
     }
 }

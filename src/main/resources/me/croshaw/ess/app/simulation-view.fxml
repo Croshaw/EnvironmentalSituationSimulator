@@ -28,6 +28,7 @@
                </children>
             </VBox>
             <Button fx:id="fileAction" mnemonicParsing="false" prefHeight="25.0" prefWidth="125.0" text="Загрузить" />
+            <Button fx:id="interactionButton" mnemonicParsing="false" prefHeight="25.0" prefWidth="130.0" text="Взаимодействие" />
          </children>
       </HBox>
    </children>

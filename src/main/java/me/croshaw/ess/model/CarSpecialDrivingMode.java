@@ -5,13 +5,18 @@ import java.time.Duration;
 import java.util.function.Predicate;
 
 public class CarSpecialDrivingMode implements Cloneable, Serializable {
-    public static CarSpecialDrivingMode NONE = new CarSpecialDrivingMode(null);
+    public static CarSpecialDrivingMode NONE = new CarSpecialDrivingMode("",null);
     private final Predicate<Car> predicate;
     private Duration duration;
+    private final String name;
 
-    public CarSpecialDrivingMode(Predicate<Car> predicate) {
+    public CarSpecialDrivingMode(String name, Predicate<Car> predicate) {
+        this.name = name;
         this.predicate = predicate;
         duration = Duration.ZERO;
+    }
+    public String getName() {
+        return name;
     }
 
     public Predicate<Car> getPredicate() {
@@ -27,6 +32,11 @@ public class CarSpecialDrivingMode implements Cloneable, Serializable {
     }
     public boolean isValid() {
         return duration.toDays() != 0;
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 
     @Override

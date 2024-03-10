@@ -1,6 +1,18 @@
 package me.croshaw.ess.util;
 
 public class NumberHelper {
+    public static boolean hasNumber(int number, int condition) {
+        if(condition > 9 || condition < 0) {
+            return false;
+        }
+        while(number > 0)
+        {
+            if(number % 10 == condition)
+                return true;
+            number=number/10;
+        }
+        return false;
+    }
     public static double round(double number, int c) {
         int divider = (int) Math.pow(10, c);
         return (double)(int) (number * divider) / divider;

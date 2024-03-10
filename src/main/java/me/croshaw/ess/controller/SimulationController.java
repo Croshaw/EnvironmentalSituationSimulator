@@ -4,10 +4,7 @@ import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.scene.canvas.Canvas;
-import me.croshaw.ess.model.CarSpecialDrivingMode;
-import me.croshaw.ess.model.City;
-import me.croshaw.ess.model.Company;
-import me.croshaw.ess.model.SimulationSummary;
+import me.croshaw.ess.model.*;
 import me.croshaw.ess.settings.*;
 import me.croshaw.ess.util.NumberHelper;
 import me.croshaw.ess.util.Pair;
@@ -191,5 +188,17 @@ public class SimulationController implements Serializable {
             simulationView.select(company.getCoordinates());
         else
             simulationView.select(null);
+    }
+
+    public boolean isRunning() {
+        return simulationDuration.toDays() > currentDay;
+    }
+
+    public void setWeather(Weather value) {
+        city.setCurrentWeather(value);
+    }
+
+    public CarSpecialDrivingMode getCurrentSpecialCarMode() {
+        return carManager.getSpecialDrivingMode();
     }
 }

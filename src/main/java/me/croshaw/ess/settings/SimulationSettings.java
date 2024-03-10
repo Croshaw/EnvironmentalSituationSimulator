@@ -4,6 +4,7 @@ import javafx.scene.canvas.Canvas;
 import me.croshaw.ess.controller.SimulationController;
 import me.croshaw.ess.model.CarSpecialDrivingMode;
 import me.croshaw.ess.model.Weather;
+import me.croshaw.ess.util.NumberHelper;
 
 import java.io.Serializable;
 import java.time.Duration;
@@ -17,9 +18,9 @@ public final class SimulationSettings implements Serializable {
         add(new Weather("Дождь+Ветер", 0.6f, 0.7f));
     }};
     public static ArrayList<CarSpecialDrivingMode> CAR_SPECIAL_DRIVING_MODE = new ArrayList<>() {{
-        add(new CarSpecialDrivingMode(car -> car.getNumber() % 2 == 0));
-        add(new CarSpecialDrivingMode(car -> car.getNumber() % 2 != 0));
-        add(new CarSpecialDrivingMode(car -> Integer.toString(car.getNumber()).matches("1")));
+        add(new CarSpecialDrivingMode("Только чётные номера", car -> car.getNumber() % 2 == 0));
+        add(new CarSpecialDrivingMode("Только не чётные номера", car -> car.getNumber() % 2 != 0));
+        add(new CarSpecialDrivingMode("Хотя бы одна 1 в номере", car -> NumberHelper.hasNumber(car.getNumber(), 1)));
     }};
     public static CarSettings CAR = new CarSettings();
     public static CompanySettings COMPANY = new CompanySettings();
