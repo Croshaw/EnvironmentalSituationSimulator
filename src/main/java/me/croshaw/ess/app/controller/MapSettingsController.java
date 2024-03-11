@@ -13,6 +13,7 @@ import javafx.scene.layout.Priority;
 import me.croshaw.ess.exception.WrongCoordinatesException;
 import me.croshaw.ess.settings.MapSettings;
 import me.croshaw.ess.settings.SimulationSettings;
+import me.croshaw.ess.util.Alerts;
 import me.croshaw.ess.util.Filters;
 import me.croshaw.ess.util.RandomUtils;
 
@@ -75,6 +76,13 @@ public class MapSettingsController implements Initializable {
     private void loadMap() {
         int rows = Integer.parseInt(rowsField.getText());
         int cols = Integer.parseInt(columnsField.getText());
+        if(rows < MapSettings.ROWS_COUNT_RANGE.getMin() || rows > MapSettings.ROWS_COUNT_RANGE.getMax()
+                || cols < MapSettings.COLUMNS_COUNT_RANGE.getMin() || cols > MapSettings.COLUMNS_COUNT_RANGE.getMax()) {
+            Alerts.WARNING.setTitle("Ошибка");
+            Alerts.WARNING.setHeaderText("Введите корректные числа!");
+            Alerts.WARNING.show();
+            return;
+        }
         mapSettings.resize(rows, cols);
         setupTable();
     }
